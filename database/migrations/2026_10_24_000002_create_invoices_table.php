@@ -20,6 +20,7 @@ return new class extends Migration
             $table->date('due_at')->nullable();
             $table->decimal('discount_percent', 5, 2)->default(0);
             $table->text('notes')->nullable();
+            $table->timestamp('reminded_at')->nullable();
             // Money is stored in minor units (cents, pence) as integers. Never floats.
             $table->bigInteger('subtotal')->default(0);
             $table->bigInteger('discount')->default(0);

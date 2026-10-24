@@ -25,6 +25,7 @@ class Invoice extends Model
             'status' => InvoiceStatus::class,
             'issued_at' => 'date',
             'due_at' => 'date',
+            'reminded_at' => 'datetime',
             'discount_percent' => 'decimal:2',
             'subtotal' => 'integer',
             'discount' => 'integer',
@@ -51,6 +52,11 @@ class Invoice extends Model
     public function payments(): HasMany
     {
         return $this->hasMany(Payment::class);
+    }
+
+    public function amountPaid(): int
+    {
+        return (int) $this->payments()->sum('amount');
     }
 
     public function isDraft(): bool

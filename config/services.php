@@ -35,4 +35,14 @@ return [
         ],
     ],
 
+    // The payment provider that notifies us of paid invoices. Generic on purpose: every
+    // provider signs its webhooks with a shared secret and an HMAC of the body.
+    'paygate' => [
+        'webhook_secret' => env('PAYGATE_WEBHOOK_SECRET'),
+    ],
+
+    'rates' => [
+        'url' => env('RATES_URL', 'https://api.frankfurter.app/latest'),
+    ],
+
 ];

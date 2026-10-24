@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Billing\Actions\SendInvoice;
 use App\Billing\Actions\VoidInvoice;
+use App\Billing\ExchangeRates;
+use App\Billing\Money;
+use App\Billing\RatesUnavailable;
 use App\Http\Requests\InvoiceRequest;
 use App\Models\Invoice;
 use Illuminate\Http\RedirectResponse;
@@ -47,11 +50,23 @@ class InvoiceController extends Controller
         return redirect()->route('invoices.show', $invoice)->with('status', 'Invoice created.');
     }
 
-    public function show(Invoice $invoice): View
+    public function show(Invoice $invoice, ExchangeRates $rates): View
     {
         Gate::authorize('view', $invoice);
 
-        return view('invoices.show', ['invoice' => $invoice->load('client', 'lines', 'payments')]);
+        $invoice->load('client', 'lines', 'payments');
+        $home = $invoice->company->currency;
+        $approx = null;
+
+        if ($invoice->currency !== $home) {
+            try {
+                $approx = Money::format($rates->convert($invoice->total, $invoice->currency, $home), $home);
+            } catch (RatesUnavailable) {
+                $approx = 'rate unavailable';
+            }
+        }
+
+        return view('invoices.show', ['invoice' => $invoice, 'approx' => $approx]);
     }
 
     public function edit(Request $request, Invoice $invoice): View

@@ -47,6 +47,12 @@
             @endif
             <tr><td colspan="4" class="px-4 py-1 text-zinc-500">Tax</td><td class="px-4 py-1 font-mono" data-tax>{{ Money::format($invoice->tax, $invoice->currency) }}</td></tr>
             <tr class="font-semibold"><td colspan="4" class="px-4 py-2">Total</td><td class="px-4 py-2 font-mono" data-total>{{ Money::format($invoice->total, $invoice->currency) }}</td></tr>
+            @if ($approx)
+                <tr><td colspan="4" class="px-4 py-1 text-xs text-zinc-500">In {{ $invoice->company->currency }}, at today's rate</td><td class="px-4 py-1 font-mono text-xs text-zinc-500" data-approx>≈ {{ $approx }}</td></tr>
+            @endif
+            @if ($invoice->payments->isNotEmpty())
+                <tr><td colspan="4" class="px-4 py-1 text-zinc-500">Paid</td><td class="px-4 py-1 font-mono" data-paid>{{ Money::format($invoice->amountPaid(), $invoice->currency) }}</td></tr>
+            @endif
         </tfoot>
     </table>
 
