@@ -6,6 +6,7 @@ use App\Enums\InvoiceStatus;
 use App\Models\Invoice;
 use App\Notifications\OverdueReminder;
 use Illuminate\Console\Command;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Notification;
 
 class SendOverdueReminders extends Command
@@ -20,7 +21,7 @@ class SendOverdueReminders extends Command
             ->with('client')
             ->where('status', InvoiceStatus::Sent)
             ->whereDate('due_at', '<', today())
-            ->where(fn ($q) => $q->whereNull('reminded_at')->orWhere('reminded_at', '<', now()->subDays(3)))
+            ->where(fn (Builder $q) => $q->whereNull('reminded_at')->orWhere('reminded_at', '<', now()->subDays(3)))
             ->orderBy('due_at')
             ->get();
 

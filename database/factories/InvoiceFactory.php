@@ -6,6 +6,7 @@ use App\Enums\InvoiceStatus;
 use App\Models\Client;
 use App\Models\Company;
 use App\Models\Invoice;
+use App\Models\InvoiceLine;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /** @extends Factory<Invoice> */
@@ -55,5 +56,21 @@ class InvoiceFactory extends Factory
             'issued_at' => now()->subDays(14 + $days)->toDateString(),
             'due_at' => now()->subDays($days)->toDateString(),
         ]);
+    }
+
+    /** A draft with real lines and its totals stored, the shape most feature tests want. */
+    public function withLines(int $count = 2): static
+    {
+        return $this->has(InvoiceLine::factory()->count($count), 'lines');
+    }
+
+    /** Runs after the lines above were created: the stored totals match them. */
+    public function configure(): static
+    {
+        return $this->afterCreating(function (Invoice $invoice) {
+            if ($invoice->lines()->exists()) {
+                $invoice->recalculate();
+            }
+        });
     }
 }
