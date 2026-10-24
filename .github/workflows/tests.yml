@@ -16,7 +16,8 @@ jobs:
       - run: composer install --no-interaction --no-progress --prefer-dist
       - run: ./vendor/bin/pint --test
 
-  # The suite on SQLite in memory, in parallel, with coverage. No Node: tests call withoutVite().
+  # Unit and feature suites on SQLite in memory, in parallel, with coverage. No Node: tests call
+  # withoutVite(). The browser suite has its own job below, with Playwright.
   tests:
     runs-on: ubuntu-latest
     strategy:
@@ -37,7 +38,7 @@ jobs:
           key: composer-${{ matrix.php }}-${{ hashFiles('composer.lock') }}
       - run: composer install --no-interaction --no-progress --prefer-dist
       - run: cp .env.example .env && php artisan key:generate
-      - run: ./vendor/bin/pest --parallel --coverage --min=80 --compact
+      - run: ./vendor/bin/pest --testsuite=Unit,Feature --parallel --coverage --min=80 --compact
       - run: ./vendor/bin/pest --type-coverage --min=100 --compact
 
   # The same suite against the database production runs. Catches what SQLite forgives.
@@ -60,7 +61,7 @@ jobs:
           coverage: none
       - run: composer install --no-interaction --no-progress --prefer-dist
       - run: cp .env.example .env && php artisan key:generate
-      - run: ./vendor/bin/pest --parallel --compact
+      - run: ./vendor/bin/pest --testsuite=Unit,Feature --parallel --compact
         env:
           DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
@@ -68,3 +69,29 @@ jobs:
           DB_DATABASE: invoicemini_test
           DB_USERNAME: root
           DB_PASSWORD: root
+
+  # Browser tests: a real Chromium through Playwright against the built assets.
+  browser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          extensions: intl, sqlite3, pdo_sqlite, gd
+          coverage: none
+      - uses: actions/setup-node@v4
+        with: { node-version: lts/*, cache: npm }
+      - run: composer install --no-interaction --no-progress --prefer-dist
+      - run: npm ci && npm run build
+      - run: npx playwright install --with-deps chromium
+      - run: cp .env.example .env && php artisan key:generate
+      - run: ./vendor/bin/pest tests/Browser --ci --trace --compact
+      - name: Upload screenshots and traces of failed tests
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: browser-tests
+          path: |
+            tests/Browser/Screenshots
+            tests/Browser/Traces

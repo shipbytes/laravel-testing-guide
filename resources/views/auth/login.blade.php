@@ -1,6 +1,6 @@
 <x-layouts.app title="Log in">
     <div class="mx-auto max-w-sm rounded-lg border border-zinc-200 bg-white p-6">
-        <h1 class="mb-4 text-lg font-semibold">Log in</h1>
+        <h1 class="mb-4 text-lg font-semibold">Sign in to InvoiceMini</h1>
         <form method="post" action="{{ route('login') }}" class="space-y-4">
             @csrf
             <div>
