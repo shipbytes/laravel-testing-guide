@@ -45,8 +45,10 @@ it('writes the PDF to the invoices disk and mails it to the client', function ()
     Mail::assertSent(InvoiceMail::class, function (InvoiceMail $mail) use ($invoice) {
         $mail->assertHasSubject('Invoice INV-2026-0003 from Acme Studio')
             ->assertSeeInHtml('€3,000.00')
-            // The assertion matches the whole attachment: disk, path, the name it was given and its options.
-            ->assertHasAttachmentFromStorageDisk('invoices', "{$this->company->id}/INV-2026-0003.pdf", 'INV-2026-0003.pdf', ['mime' => 'application/pdf']);
+            // An Attachment::fromStorageDisk() returned from attachments() is attached as data, so
+            // assertHasAttachmentFromStorageDisk() (which only sees attachFromStorageDisk() calls) would
+            // never match. Assert on the bytes, with the name and MIME type the mail gives them.
+            ->assertHasAttachedData(Storage::disk('invoices')->get("{$this->company->id}/INV-2026-0003.pdf"), 'INV-2026-0003.pdf', ['mime' => 'application/pdf']);
 
         return $mail->hasTo('billing@northwind.test') && $mail->invoice->is($invoice);
     });
