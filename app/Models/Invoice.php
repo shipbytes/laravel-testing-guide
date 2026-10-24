@@ -2,6 +2,9 @@
 
 namespace App\Models;
 
+use App\Billing\LineItem;
+use App\Billing\Totals;
+use App\Billing\TotalsCalculator;
 use App\Enums\InvoiceStatus;
 use Database\Factories\InvoiceFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -48,5 +51,36 @@ class Invoice extends Model
     public function payments(): HasMany
     {
         return $this->hasMany(Payment::class);
+    }
+
+    public function isDraft(): bool
+    {
+        return $this->status === InvoiceStatus::Draft;
+    }
+
+    /** Recompute the stored totals from the lines. Called after any change to them. */
+    public function recalculate(): Totals
+    {
+        $lines = $this->lines()->get()->map(fn (InvoiceLine $line) => new LineItem(
+            quantity: (float) $line->quantity,
+            unitPrice: $line->unit_price,
+            taxRate: (float) $line->tax_rate,
+        ))->all();
+
+        $totals = (new TotalsCalculator)->calculate($lines, (float) $this->discount_percent);
+        $this->forceFill($totals->toArray())->save();
+
+        return $totals;
+    }
+
+    /** The highest number issued by the company in a year, or null. Longer strings sort after shorter ones, so 10000 beats 9999. */
+    public static function lastNumber(Company $company, string $prefix, int $year): ?string
+    {
+        return static::query()
+            ->where('company_id', $company->id)
+            ->where('number', 'like', strtoupper($prefix).'-'.$year.'-%')
+            ->orderByRaw('length(number) desc, number desc')
+            ->lockForUpdate()
+            ->value('number');
     }
 }

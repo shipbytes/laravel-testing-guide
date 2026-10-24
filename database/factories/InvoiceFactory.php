@@ -17,7 +17,7 @@ class InvoiceFactory extends Factory
             'company_id' => Company::factory(),
             // The client belongs to the same company as the invoice.
             'client_id' => fn (array $attributes) => Client::factory()->for(Company::find($attributes['company_id'])),
-            'number' => fn (array $attributes) => 'INV-'.str_pad((string) fake()->unique()->numberBetween(1, 9999), 4, '0', STR_PAD_LEFT),
+            'number' => null,
             'status' => InvoiceStatus::Draft,
             'currency' => 'EUR',
             'issued_at' => null,
@@ -35,6 +35,7 @@ class InvoiceFactory extends Factory
     public function sent(): static
     {
         return $this->state(fn () => [
+            'number' => 'INV-'.now()->year.'-'.str_pad((string) fake()->unique()->numberBetween(1, 9999), 4, '0', STR_PAD_LEFT),
             'status' => InvoiceStatus::Sent,
             'issued_at' => now()->toDateString(),
             'due_at' => now()->addDays(14)->toDateString(),
@@ -49,6 +50,7 @@ class InvoiceFactory extends Factory
     public function overdue(int $days = 7): static
     {
         return $this->state(fn () => [
+            'number' => 'INV-'.now()->year.'-'.str_pad((string) fake()->unique()->numberBetween(1, 9999), 4, '0', STR_PAD_LEFT),
             'status' => InvoiceStatus::Sent,
             'issued_at' => now()->subDays(14 + $days)->toDateString(),
             'due_at' => now()->subDays($days)->toDateString(),

@@ -13,7 +13,7 @@ enum InvoiceStatus: string
     public function transitions(): array
     {
         return match ($this) {
-            self::Draft => [self::Sent, self::Void],
+            self::Draft => [self::Sent],
             self::Sent => [self::Paid, self::Void],
             self::Paid, self::Void => [],
         };

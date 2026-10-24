@@ -12,7 +12,8 @@ return new class extends Migration
             $table->id();
             $table->foreignId('company_id')->constrained()->cascadeOnDelete();
             $table->foreignId('client_id')->constrained()->restrictOnDelete();
-            $table->string('number', 30);
+            // Assigned when the invoice is sent, so drafts never consume a number.
+            $table->string('number', 30)->nullable();
             $table->string('status', 10)->default('draft');
             $table->char('currency', 3);
             $table->date('issued_at')->nullable();

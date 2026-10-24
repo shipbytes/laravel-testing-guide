@@ -1,6 +1,7 @@
 <x-layouts.app title="Invoices">
     <div class="mb-6 flex items-center justify-between">
         <h1 class="text-xl font-semibold">Invoices</h1>
+        <a href="{{ route('invoices.create') }}" class="rounded-md bg-zinc-900 px-3 py-1.5 text-sm text-white">New invoice</a>
     </div>
     <table class="w-full border-collapse overflow-hidden rounded-lg border border-zinc-200 bg-white text-sm">
         <thead class="bg-zinc-100 text-left text-xs uppercase tracking-wide text-zinc-500">
@@ -15,7 +16,7 @@
         <tbody>
             @forelse ($invoices as $invoice)
                 <tr class="border-t border-zinc-200">
-                    <td class="px-4 py-2 font-mono">{{ $invoice->number }}</td>
+                    <td class="px-4 py-2 font-mono"><a href="{{ route('invoices.show', $invoice) }}" class="hover:underline">{{ $invoice->number ?? 'Draft #'.$invoice->id }}</a></td>
                     <td class="px-4 py-2">{{ $invoice->client->name }}</td>
                     <td class="px-4 py-2">{{ $invoice->status->label() }}</td>
                     <td class="px-4 py-2">{{ $invoice->due_at?->toFormattedDateString() ?? '—' }}</td>

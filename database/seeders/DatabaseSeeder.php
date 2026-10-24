@@ -24,10 +24,11 @@ class DatabaseSeeder extends Seeder
         $clients = Client::factory()->count(3)->for($company)->create();
 
         foreach (['draft', 'sent', 'paid', 'overdue'] as $i => $state) {
-            $invoice = Invoice::factory()->for($company)->for($clients[$i % 3])
+            /** @var Invoice $invoice */
+            Invoice::factory()->for($company)->for($clients[$i % 3])
                 ->{$state}()
                 ->has(InvoiceLine::factory()->count(2), 'lines')
-                ->create(['number' => 'INV-2026-000'.($i + 1)]);
+                ->create($state === 'draft' ? [] : ['number' => 'INV-2026-000'.($i + 1)]);
         }
     }
 }
